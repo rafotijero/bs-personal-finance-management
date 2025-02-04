@@ -2,6 +2,9 @@ package app.rafo.bs_personal_finance_management.service;
 
 import app.rafo.bs_personal_finance_management.model.User;
 import app.rafo.bs_personal_finance_management.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,7 +14,7 @@ import java.util.Optional;
  * Service layer for handling user-related operations.
  */
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -21,6 +24,18 @@ public class UserService {
      */
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    /**
+     * Loads a user by their email for Spring Security authentication.
+     * @param email the email of the user
+     * @return UserDetails required by Spring Security
+     * @throws UsernameNotFoundException if the user is not found
+     */
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
     /**
