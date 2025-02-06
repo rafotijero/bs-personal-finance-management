@@ -45,7 +45,7 @@ public class AuthService {
         }
 
         // Generate JWT token using the user's email
-        String jwtToken = jwtService.generateToken(user.getUsername());
+        String jwtToken = jwtService.generateToken(user);
 
         return new AuthenticationResponse(jwtToken);
     }
@@ -71,11 +71,11 @@ public class AuthService {
         newUser.setName(request.getName());
         newUser.setRole(request.getRole());
 
-        // Save the user in the database
-        userRepository.save(newUser);
+        // Cargar usuario desde DB para asegurarse de obtener UserDetails correctamente
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
 
-        // Generate JWT token using the user's email
-        String jwtToken = jwtService.generateToken(newUser.getEmail());
+        // Generar token con roles
+        String jwtToken = jwtService.generateToken(userDetails);
 
         return new AuthenticationResponse(jwtToken);
     }

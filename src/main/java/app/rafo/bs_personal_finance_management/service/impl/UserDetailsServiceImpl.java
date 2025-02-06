@@ -2,11 +2,14 @@ package app.rafo.bs_personal_finance_management.service.impl;
 
 import app.rafo.bs_personal_finance_management.repository.UserRepository;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 
 /**
  * Implementation of {@link UserDetailsService} for user authentication.
@@ -39,11 +42,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
-                .map(user -> User.builder()
-                        .username(user.getEmail())  // Set email as username
-                        .password(user.getPassword()) // Set the encrypted password
-                        .roles(user.getRole().name()) // Assign roles (e.g., ADMIN, USER)
-                        .build())
+                .map(user -> new org.springframework.security.core.userdetails.User(
+                        user.getEmail(),
+                        user.getPassword(),
+                        Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name())) // 🔥 Sin "ROLE_"
+                ))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 }

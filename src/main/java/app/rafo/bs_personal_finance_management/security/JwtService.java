@@ -3,11 +3,14 @@ package app.rafo.bs_personal_finance_management.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import java.security.Key;
-import java.util.Base64;
-import java.util.Date;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Service for generating and validating JWT tokens.
@@ -20,18 +23,27 @@ public class JwtService {
 
 
     /**
-     * Generates a JWT token for a given email.
-     * @param email The email of the authenticated user.
+     * Generates a JWT token for a given user.
+     * @param userDetails The authenticated user's details.
      * @return The generated JWT token.
      */
-    public String generateToken(String email) {
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+
+        // 🔹 Agregar "ROLE_" a los roles antes de guardarlos en el JWT
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(auth -> "ROLE_" + auth.getAuthority()) // 🔥 Agregar "ROLE_" aquí
+                .collect(Collectors.toList()));
+
         return Jwts.builder()
-                .setSubject(email)
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour expiration
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     /**
      * Validates the token and checks if it belongs to a given email.
@@ -97,4 +109,20 @@ public class JwtService {
             throw new RuntimeException("Invalid JWT secret key. Ensure it is Base64 encoded.", e);
         }
     }
+
+    /**
+     * Extracts roles from the JWT token.
+     * @param token The JWT token.
+     * @return A list of GrantedAuthority roles.
+     */
+    public List<GrantedAuthority> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        List<String> roles = claims.get("roles", List.class);
+
+        // 🔹 Convertir los roles en SimpleGrantedAuthority sin agregar "ROLE_" nuevamente
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role)) // 🔥 No agregar "ROLE_" aquí
+                .collect(Collectors.toList());
+    }
+
 }
