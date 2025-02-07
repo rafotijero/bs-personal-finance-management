@@ -1,5 +1,6 @@
 package app.rafo.bs_personal_finance_management.service;
 
+import app.rafo.bs_personal_finance_management.dto.ApiResponse;
 import app.rafo.bs_personal_finance_management.model.Bank;
 import app.rafo.bs_personal_finance_management.repository.BankRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,19 +15,27 @@ public class BankService {
 
     private final BankRepository bankRepository;
 
-    public List<Bank> getAllBanks() {
-        return bankRepository.findAll();
+    public ApiResponse<List<Bank>> getAllBanks() {
+        List<Bank> banks = bankRepository.findAll();
+        return new ApiResponse<>(banks, "List of all banks", 200, banks.size());
     }
 
-    public Optional<Bank> getBankById(Long id) {
-        return bankRepository.findById(id);
+    public ApiResponse<Bank> getBankById(Long id) {
+        return bankRepository.findById(id)
+                .map(bank -> new ApiResponse<>(bank, "Bank found", 200, 1))
+                .orElse(new ApiResponse<>(null, "Bank not found", 404, 0));
     }
 
-    public Bank saveBank(Bank bank) {
-        return bankRepository.save(bank);
+    public ApiResponse<Bank> saveBank(Bank bank) {
+        Bank savedBank = bankRepository.save(bank);
+        return new ApiResponse<>(savedBank, "Bank created successfully", 201, 1);
     }
 
-    public void deleteBank(Long id) {
+    public ApiResponse<Void> deleteBank(Long id) {
+        if (!bankRepository.existsById(id)) {
+            return new ApiResponse<>(null, "Bank not found", 404, 0);
+        }
         bankRepository.deleteById(id);
+        return new ApiResponse<>(null, "Bank deleted successfully", 200, 0);
     }
 }

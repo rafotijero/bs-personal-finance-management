@@ -77,6 +77,16 @@ public class SecurityConfig {
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/banks/**").hasRole("ADMIN")  // 🔹 Solo ADMIN puede hacer POST
                         .requestMatchers(HttpMethod.GET, "/banks/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")  // Solo los ADMIN pueden crear cuentas
+                        .requestMatchers(HttpMethod.GET, "/bank-accounts/my-accounts").hasRole("USER") // Los usuarios pueden ver sus cuentas
+                        .requestMatchers(HttpMethod.POST, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 Tanto ADMIN como USER pueden crear transacciones
+                        .requestMatchers(HttpMethod.GET, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 Ambos pueden ver transacciones
+                        .requestMatchers(HttpMethod.POST, "/fixed-incomes/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio ingreso fijo
+                        .requestMatchers(HttpMethod.GET, "/fixed-incomes/**").hasRole("USER")  // 🔥 Un USER solo puede ver sus ingresos fijos
+                        .requestMatchers(HttpMethod.POST, "/fixed-expenses/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio gasto fijo
+                        .requestMatchers(HttpMethod.GET, "/fixed-expenses/**").hasRole("USER")  // 🔥 Un USER solo puede ver sus gastos fijos
+                        .requestMatchers(HttpMethod.POST, "/variable-transactions/**").hasAnyRole("ADMIN", "USER") // 🔥 ADMIN y USER pueden registrar
+                        .requestMatchers(HttpMethod.GET, "/variable-transactions/**").hasAnyRole("ADMIN", "USER") // 🔥 Ambos pueden ver
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

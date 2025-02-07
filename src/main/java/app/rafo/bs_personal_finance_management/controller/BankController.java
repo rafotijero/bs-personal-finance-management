@@ -1,5 +1,6 @@
 package app.rafo.bs_personal_finance_management.controller;
 
+import app.rafo.bs_personal_finance_management.dto.ApiResponse;
 import app.rafo.bs_personal_finance_management.model.Bank;
 import app.rafo.bs_personal_finance_management.service.BankService;
 import lombok.RequiredArgsConstructor;
@@ -9,32 +10,31 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/banks")
+@RequestMapping("/banks") // 🔹 Se ajusta para que el context-path "/api/v1" lo agregue automáticamente
 @RequiredArgsConstructor
 public class BankController {
 
     private final BankService bankService;
 
     @GetMapping
-    public ResponseEntity<List<Bank>> getAllBanks() {
+    public ResponseEntity<ApiResponse<List<Bank>>> getAllBanks() {
         return ResponseEntity.ok(bankService.getAllBanks());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Bank> getBankById(@PathVariable Long id) {
-        return bankService.getBankById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Bank>> getBankById(@PathVariable Long id) {
+        return ResponseEntity.status(bankService.getBankById(id).getStatusCode())
+                .body(bankService.getBankById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Bank> createBank(@RequestBody Bank bank) {
-        return ResponseEntity.ok(bankService.saveBank(bank));
+    public ResponseEntity<ApiResponse<Bank>> createBank(@RequestBody Bank bank) {
+        return ResponseEntity.status(201).body(bankService.saveBank(bank));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBank(@PathVariable Long id) {
-        bankService.deleteBank(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteBank(@PathVariable Long id) {
+        return ResponseEntity.status(bankService.deleteBank(id).getStatusCode())
+                .body(bankService.deleteBank(id));
     }
 }
