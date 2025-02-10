@@ -14,6 +14,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -72,23 +74,25 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/banks/**").hasRole("ADMIN")  // 🔹 Solo ADMIN puede hacer POST
-                        .requestMatchers(HttpMethod.GET, "/banks/**").hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")  // Solo los ADMIN pueden crear cuentas
-                        .requestMatchers(HttpMethod.GET, "/bank-accounts/my-accounts").hasRole("USER") // Los usuarios pueden ver sus cuentas
-                        .requestMatchers(HttpMethod.POST, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 Tanto ADMIN como USER pueden crear transacciones
-                        .requestMatchers(HttpMethod.GET, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 Ambos pueden ver transacciones
-                        .requestMatchers(HttpMethod.POST, "/fixed-incomes/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio ingreso fijo
-                        .requestMatchers(HttpMethod.GET, "/fixed-incomes/**").hasRole("USER")  // 🔥 Un USER solo puede ver sus ingresos fijos
-                        .requestMatchers(HttpMethod.POST, "/fixed-expenses/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio gasto fijo
-                        .requestMatchers(HttpMethod.GET, "/fixed-expenses/**").hasRole("USER")  // 🔥 Un USER solo puede ver sus gastos fijos
-                        .requestMatchers(HttpMethod.POST, "/variable-transactions/**").hasAnyRole("ADMIN", "USER") // 🔥 ADMIN y USER pueden registrar
-                        .requestMatchers(HttpMethod.GET, "/variable-transactions/**").hasAnyRole("ADMIN", "USER") // 🔥 Ambos pueden ver
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    configureBankPermissions(auth);
+                    configureBankAccountPermissions(auth);
+                    configureTransactionPermissions(auth);
+                    configureFixedIncomePermissions(auth);
+                    configureFixedExpensePermissions(auth);
+                    configureVariableTransactionPermissions(auth);
+
+                    auth.requestMatchers("/auth/**").permitAll();  // 🔓 Permitir autenticación pública
+
+                    // 🔒 Solo ADMIN o USER pueden subir imágenes
+                    auth.requestMatchers(HttpMethod.POST, "/uploads/logo").hasAnyRole("ADMIN", "USER");
+
+                    // 🔓 Permitir acceso público a imágenes
+                    auth.requestMatchers(HttpMethod.GET, "/uploads/**").permitAll();
+
+                    auth.requestMatchers("/users/**").hasRole("ADMIN");
+                    auth.anyRequest().authenticated();
+                })
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
@@ -97,6 +101,46 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+
+    private void configureBankPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/banks/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/banks/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.PUT, "/banks/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/banks/{id}/restore").hasRole("ADMIN") // Correcto
+                .requestMatchers(HttpMethod.DELETE, "/banks/**").hasRole("ADMIN");
+    }
+
+    private void configureBankAccountPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")  // Solo ADMIN puede crear cuentas
+                .requestMatchers(HttpMethod.GET, "/bank-accounts/my-accounts").hasRole("USER"); // Usuarios pueden ver sus cuentas
+    }
+
+    private void configureTransactionPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 ADMIN y USER pueden registrar
+                .requestMatchers(HttpMethod.GET, "/transactions/**").hasAnyRole("ADMIN", "USER");  // 🔥 Ambos pueden ver transacciones
+    }
+
+    private void configureFixedIncomePermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/fixed-incomes/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio ingreso fijo
+                .requestMatchers(HttpMethod.GET, "/fixed-incomes/**").hasRole("USER");  // 🔥 Un USER solo puede ver sus ingresos fijos
+    }
+
+    private void configureFixedExpensePermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/fixed-expenses/**").hasRole("USER")  // 🔥 Un USER puede registrar su propio gasto fijo
+                .requestMatchers(HttpMethod.GET, "/fixed-expenses/**").hasRole("USER");  // 🔥 Un USER solo puede ver sus gastos fijos
+    }
+
+    private void configureVariableTransactionPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                .requestMatchers(HttpMethod.POST, "/variable-transactions/**").hasAnyRole("ADMIN", "USER") // 🔥 ADMIN y USER pueden registrar
+                .requestMatchers(HttpMethod.GET, "/variable-transactions/**").hasAnyRole("ADMIN", "USER"); // 🔥 Ambos pueden ver
     }
 
     /**
