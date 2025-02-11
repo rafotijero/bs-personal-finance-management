@@ -2,6 +2,10 @@ package app.rafo.bs_personal_finance_management.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bank_accounts")
@@ -31,5 +35,28 @@ public class BankAccount {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User owner; // Usuario propietario de la cuenta
-}
 
+    // Auditoría
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt; // Fecha de creación
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt; // Fecha de última actualización
+
+    @Column(nullable = true)
+    private String createdBy; // Usuario que creó el registro
+
+    @Column(nullable = true)
+    private String updatedBy; // Último usuario que actualizó el registro
+
+    // Eliminación lógica
+    @Column(nullable = false)
+    private Character isDeleted = '0'; // '0' = No eliminado, '1' = Eliminado
+
+    @Column(nullable = true)
+    private LocalDateTime deletedAt; // Fecha de eliminación
+
+    @Column(nullable = true)
+    private String deletedBy; // Usuario que eliminó el registro
+}

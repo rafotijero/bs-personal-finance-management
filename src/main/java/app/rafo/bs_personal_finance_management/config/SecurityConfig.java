@@ -115,9 +115,17 @@ public class SecurityConfig {
 
     private void configureBankAccountPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")  // Solo ADMIN puede crear cuentas
-                .requestMatchers(HttpMethod.GET, "/bank-accounts/my-accounts").hasRole("USER"); // Usuarios pueden ver sus cuentas
+                .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/bank-accounts").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/bank-accounts/{id}").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.GET, "/bank-accounts/bank/{bankId}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/bank-accounts/owner/{ownerId}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/bank-accounts/{id}").hasRole("ADMIN") // ✅ Nuevo endpoint para modificar
+                .requestMatchers(HttpMethod.DELETE, "/bank-accounts/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/bank-accounts/{id}/restore").hasRole("ADMIN");
     }
+
+
 
     private void configureTransactionPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
