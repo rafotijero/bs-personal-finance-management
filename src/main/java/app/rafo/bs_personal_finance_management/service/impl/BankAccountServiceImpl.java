@@ -45,6 +45,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         }
 
         BankAccount bankAccount = BankAccount.builder()
+                .accountDescription(bankAccountDTO.getAccountDescription())
                 .accountNumber(bankAccountDTO.getAccountNumber())
                 .balance(bankAccountDTO.getBalance())
                 .accountType(accountType)
@@ -141,6 +142,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private BankAccountDTO mapToDTO(BankAccount bankAccount) {
         return BankAccountDTO.builder()
                 .id(bankAccount.getId())
+                .accountDescription(bankAccount.getAccountDescription())
                 .accountNumber(bankAccount.getAccountNumber())
                 .balance(bankAccount.getBalance())
                 .accountType(bankAccount.getAccountType().name()) // Convertir Enum a String
@@ -174,6 +176,11 @@ public class BankAccountServiceImpl implements BankAccountService {
             User owner = userRepository.findById(bankAccountDTO.getOwnerId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
             bankAccount.setOwner(owner);
+        }
+
+        // Si se envía una descripción de cuenta, actualizarlo
+        if (bankAccountDTO.getAccountDescription() != null) {
+            bankAccount.setAccountDescription(bankAccountDTO.getAccountDescription());
         }
 
         // Si se envía un número de cuenta, actualizarlo

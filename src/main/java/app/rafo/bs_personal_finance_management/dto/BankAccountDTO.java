@@ -9,6 +9,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class BankAccountDTO {
@@ -19,9 +21,12 @@ public class BankAccountDTO {
     @Size(max = 20, message = "Account number must be at most 20 characters")
     private String accountNumber;
 
+    @NotBlank(message = "Account description is required")
+    private String accountDescription;
+
     @NotNull(message = "Balance is required")
     @Positive(message = "Balance must be a positive number")
-    private Double balance;
+    private BigDecimal balance;
 
     @NotBlank(message = "Account type is required")
     private String accountType; // Se usará como String, pero debe coincidir con los valores de AccountType

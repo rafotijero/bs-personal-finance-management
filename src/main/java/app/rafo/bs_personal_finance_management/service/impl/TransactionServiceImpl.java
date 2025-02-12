@@ -48,10 +48,19 @@ public class TransactionServiceImpl implements TransactionService {
                 .createdBy(AuthUtil.getAuthenticatedUser()) // Reemplazar con el usuario autenticado
                 .build();
 
+        // ✅ ACTUALIZAR SALDO SEGÚN EL TIPO DE TRANSACCIÓN
+        if (transactionType == TransactionType.INCOME) {
+            bankAccount.setBalance(bankAccount.getBalance().add(transactionDTO.getAmount())); // Sumar ingresos
+        } else if (transactionType == TransactionType.EXPENSE) {
+            bankAccount.setBalance(bankAccount.getBalance().subtract(transactionDTO.getAmount())); // Restar egresos
+        }
+
+        bankAccountRepository.save(bankAccount);
         transaction = transactionRepository.save(transaction);
 
         return new ApiResponse<>(mapToDTO(transaction), "Transaction created successfully", 201, 1);
     }
+
 
     @Override
     public ApiResponse<TransactionDTO> getTransactionById(Long id) {

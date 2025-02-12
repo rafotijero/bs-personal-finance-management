@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,10 +20,13 @@ public class BankAccount {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    private String accountDescription; // Número de cuenta único
+
+    @Column(nullable = false, unique = true)
     private String accountNumber; // Número de cuenta único
 
     @Column(nullable = false)
-    private Double balance; // Saldo de la cuenta
+    private BigDecimal balance; // Saldo de la cuenta
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
