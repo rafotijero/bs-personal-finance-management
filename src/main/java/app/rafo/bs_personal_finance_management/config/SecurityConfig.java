@@ -130,8 +130,17 @@ public class SecurityConfig {
     private void configureTransactionPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
                 .requestMatchers(HttpMethod.POST, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 ADMIN y USER pueden registrar
-                .requestMatchers(HttpMethod.GET, "/transactions/**").hasAnyRole("ADMIN", "USER");  // 🔥 Ambos pueden ver transacciones
+
+                // 🔒 Un usuario solo puede ver sus propias transacciones (validación adicional en TransactionService)
+                .requestMatchers(HttpMethod.GET, "/transactions/user/{userId}").hasAnyRole("ADMIN", "USER")
+
+                // 🔒 ADMIN puede ver todas las transacciones
+                .requestMatchers(HttpMethod.GET, "/transactions/**").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.PUT, "/transactions/**").hasAnyRole("ADMIN", "USER") // Ambos pueden actualizar
+                .requestMatchers(HttpMethod.DELETE, "/transactions/**").hasAnyRole("ADMIN", "USER"); // Eliminación lógica permitida para ambos
     }
+
 
     private void configureFixedIncomePermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth

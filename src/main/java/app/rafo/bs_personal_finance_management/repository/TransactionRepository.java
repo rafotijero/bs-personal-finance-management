@@ -10,9 +10,14 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    // Buscar todas las transacciones por cuenta bancaria
-    List<Transaction> findByBankAccountId(Long bankAccountId);
+    // Obtener todas las transacciones de una cuenta bancaria específica (no eliminadas)
+    List<Transaction> findByBankAccountIdAndIsDeleted(Long bankAccountId, Character isDeleted);
 
-    // Buscar transacciones por tipo (ingreso o egreso)
-    List<Transaction> findByBankAccountIdAndTransactionType(Long bankAccountId, TransactionType transactionType);
+    // Obtener todas las transacciones de un usuario (a través de las cuentas bancarias)
+    List<Transaction> findByBankAccount_Owner_IdAndIsDeleted(Long ownerId, Character isDeleted);
+
+    // Obtener transacciones por tipo (Ingreso o Egreso) de una cuenta específica
+    List<Transaction> findByBankAccountIdAndTransactionTypeAndIsDeleted(Long bankAccountId,
+                                                                        TransactionType transactionType,
+                                                                        Character isDeleted);
 }
