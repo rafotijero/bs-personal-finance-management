@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>app.rafo</groupId>
 	<artifactId>bs-personal-finance-management</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1-dev.02</version>
 	<name>bs-personal-finance-management</name>
 	<description>Personal Finance Management</description>
 	<url/>
