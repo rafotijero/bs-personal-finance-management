@@ -115,13 +115,13 @@ public class SecurityConfig {
 
     private void configureBankAccountPermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/bank-accounts/**").hasRole("USER")
                 .requestMatchers(HttpMethod.GET, "/bank-accounts").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/bank-accounts/{id}").hasAnyRole("ADMIN", "USER")
                 .requestMatchers(HttpMethod.GET, "/bank-accounts/bank/{bankId}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/bank-accounts/owner/{ownerId}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/bank-accounts/{id}").hasRole("ADMIN") // ✅ Nuevo endpoint para modificar
-                .requestMatchers(HttpMethod.DELETE, "/bank-accounts/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/bank-accounts/owner/{ownerId}").hasRole("USER")
+                .requestMatchers(HttpMethod.PUT, "/bank-accounts/{id}").hasRole("USER") // ✅ Nuevo endpoint para modificar
+                .requestMatchers(HttpMethod.DELETE, "/bank-accounts/{id}").hasRole("USER")
                 .requestMatchers(HttpMethod.PUT, "/bank-accounts/{id}/restore").hasRole("ADMIN");
     }
 
@@ -132,7 +132,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/transactions/**").hasAnyRole("ADMIN", "USER")  // 🔥 ADMIN y USER pueden registrar
 
                 // 🔒 Un usuario solo puede ver sus propias transacciones (validación adicional en TransactionService)
-                .requestMatchers(HttpMethod.GET, "/transactions/user/{userId}").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.GET, "/transactions/user/{userId}").hasRole("USER")
+
+                .requestMatchers(HttpMethod.GET, "/transactions/user/{userId}/**").hasRole("USER")
 
                 // 🔒 ADMIN puede ver todas las transacciones
                 .requestMatchers(HttpMethod.GET, "/transactions/**").hasRole("ADMIN")

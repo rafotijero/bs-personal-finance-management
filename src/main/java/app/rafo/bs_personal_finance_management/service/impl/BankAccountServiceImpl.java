@@ -88,7 +88,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public ApiResponse<List<BankAccountDTO>> getBankAccountsByOwnerId(Long ownerId) {
-        List<BankAccountDTO> accounts = bankAccountRepository.findByOwnerId(ownerId)
+        List<BankAccountDTO> accounts = bankAccountRepository.findByOwnerIdAndIsDeleted(ownerId, '0')
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

@@ -10,6 +10,8 @@ import app.rafo.bs_personal_finance_management.repository.UserRepository;
 import app.rafo.bs_personal_finance_management.service.TransactionService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -87,22 +89,37 @@ public class TransactionServiceImpl implements TransactionService {
         User authenticatedUser = userRepository.findByEmail(authenticatedEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found"));
 
-        // Si el usuario es ADMIN, puede ver cualquier transacción
-        if (authenticatedUser.getRole().equals(UserRole.ADMIN)) {
-            List<TransactionDTO> transactions = transactionRepository.findByBankAccount_Owner_IdAndIsDeleted(userId, '0')
-                    .stream()
-                    .map(this::mapToDTO)
-                    .collect(Collectors.toList());
-            return new ApiResponse<>(transactions, "User transactions retrieved successfully", 200, transactions.size());
-        }
-
         // Si el usuario es USER, solo puede ver sus propias transacciones
         if (!authenticatedUser.getId().equals(userId)) {
             throw new AccessDeniedException("You are not authorized to view these transactions");
         }
 
         // Retornar las transacciones si la validación es exitosa
-        List<TransactionDTO> transactions = transactionRepository.findByBankAccount_Owner_IdAndIsDeleted(userId, '0')
+        List<TransactionDTO> transactions = transactionRepository.findAllByUserId(userId)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>(transactions, "User transactions retrieved successfully", 200, transactions.size());
+    }
+
+    @Override
+    public ApiResponse<List<TransactionDTO>> getTransactionsByUser(Long userId, int limit) {
+        // Obtener el usuario autenticado
+        String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User authenticatedUser = userRepository.findByEmail(authenticatedEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found"));
+
+        // Si el usuario es USER, solo puede ver sus propias transacciones
+        if (!authenticatedUser.getId().equals(userId) && !authenticatedUser.getRole().equals(UserRole.ADMIN)) {
+            throw new AccessDeniedException("You are not authorized to view these transactions");
+        }
+
+        Pageable pageable = PageRequest.of(0, limit); // Página 0, tamaño 5
+
+        // Obtener las transacciones con el nuevo query
+        List<TransactionDTO> transactions = transactionRepository
+                .findTopTransactionsByUserId(userId, pageable)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

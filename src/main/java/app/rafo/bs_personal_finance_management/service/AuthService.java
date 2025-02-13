@@ -4,6 +4,7 @@ import app.rafo.bs_personal_finance_management.auth.AuthenticationRequest;
 import app.rafo.bs_personal_finance_management.auth.AuthenticationResponse;
 import app.rafo.bs_personal_finance_management.auth.RegisterRequest;
 import app.rafo.bs_personal_finance_management.model.User;
+import app.rafo.bs_personal_finance_management.model.UserRole;
 import app.rafo.bs_personal_finance_management.repository.UserRepository;
 import app.rafo.bs_personal_finance_management.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Service responsible for handling authentication and user registration.
@@ -69,10 +72,13 @@ public class AuthService {
         newUser.setEmail(request.getEmail());
         newUser.setPassword(passwordEncoder.encode(request.getPassword())); // 🔐 Encriptar la contraseña
         newUser.setName(request.getName());
-        newUser.setRole(request.getRole());
 
-        // Guardar usuario en la base de datos y forzar la persistencia
-        userRepository.saveAndFlush(newUser); // 🔥 Asegurar que el usuario se guarda antes de intentar autenticarlo
+        // Determinar el rol del usuario (solo el primero será ADMIN)
+        long userCount = userRepository.count();
+        newUser.setRole(userCount > 0 ? UserRole.USER : UserRole.ADMIN); // ✅ Optimizado
+
+        // Guardar usuario en la base de datos
+        userRepository.saveAndFlush(newUser);
 
         // Cargar usuario desde DB para obtener UserDetails correctamente
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());

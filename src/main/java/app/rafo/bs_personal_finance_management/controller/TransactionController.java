@@ -41,6 +41,14 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getTransactionsByUser(userId));
     }
 
+    @GetMapping("/user/{userId}/recent")
+    public ResponseEntity<ApiResponse<List<TransactionDTO>>> getTransactionsByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "5") int limit) {
+
+        return ResponseEntity.ok(transactionService.getTransactionsByUser(userId, limit));
+    }
+
     // 🔹 Listar transacciones por tipo (INCOME o EXPENSE) en una cuenta específica
     @GetMapping("/bank-account/{bankAccountId}/type/{transactionType}")
     public ResponseEntity<ApiResponse<List<TransactionDTO>>> getTransactionsByType(@PathVariable Long bankAccountId,

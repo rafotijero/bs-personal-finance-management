@@ -15,6 +15,8 @@ public interface TransactionService {
 
     ApiResponse<List<TransactionDTO>> getTransactionsByUser(Long userId); // Listar por usuario
 
+    ApiResponse<List<TransactionDTO>> getTransactionsByUser(Long userId, int limit); // Listar por usuario
+
     ApiResponse<List<TransactionDTO>> getTransactionsByType(Long bankAccountId, String transactionType); // Listar por tipo
 
     ApiResponse<TransactionDTO> updateTransaction(Long id, TransactionDTO transactionDTO); // Actualizar transacción

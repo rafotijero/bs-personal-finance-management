@@ -49,6 +49,7 @@ public class JwtService {
                 .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found"));
 
         claims.put("id", authenticatedUser.getId());
+        claims.put("name", authenticatedUser.getName());
 
         return Jwts.builder()
                 .setClaims(claims)

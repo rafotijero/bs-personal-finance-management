@@ -16,5 +16,7 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, Long> 
 
     List<BankAccount> findByOwnerId(Long ownerId);
 
+    List<BankAccount> findByOwnerIdAndIsDeleted(Long ownerId, Character isDeleted);
+
     List<BankAccount> findByIsDeleted(Character isDeleted);
 }
