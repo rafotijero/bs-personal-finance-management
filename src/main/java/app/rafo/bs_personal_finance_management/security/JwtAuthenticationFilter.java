@@ -56,52 +56,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestPath = request.getServletPath();
+
+        // 🔹 Ignorar el filtro en las rutas públicas
+        if (requestPath.startsWith("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
-        // Verificar si el encabezado de autorización es válido
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             logger.warn("🚨 No JWT token found in Authorization header");
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extraer el token JWT
         String token = authHeader.substring(7);
         String userEmail = jwtService.extractEmail(token);
 
-        // Verificar si el email se extrajo correctamente y si no hay autenticación previa
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            logger.info("🔑 Extracted email from JWT: " + userEmail);
-
-            // Cargar los detalles del usuario
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-            logger.info("🔑 Loaded user details: " + userDetails.getUsername());
-
-            // Extraer los roles del token JWT
             List<GrantedAuthority> authorities = jwtService.extractRoles(token);
-            logger.info("🔑 Extracted roles from JWT: " + authorities.stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList()));
 
-            // Validar el token JWT
             if (jwtService.isTokenValid(token, userDetails.getUsername())) {
-                logger.info("✅ JWT token is valid");
-
-                // Crear el objeto de autenticación
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, authorities);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Establecer la autenticación en el SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                logger.info("🔑 Authentication set in SecurityContext for user: " + userDetails.getUsername());
             } else {
                 logger.warn("🚨 JWT token is invalid");
             }
         }
 
-        // Continuar con la cadena de filtros
         filterChain.doFilter(request, response);
     }
+
 
 }

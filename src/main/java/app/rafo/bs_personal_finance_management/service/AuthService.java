@@ -59,24 +59,28 @@ public class AuthService {
      * @return {@link AuthenticationResponse} containing the generated JWT token or an error message.
      */
     public AuthenticationResponse register(RegisterRequest request) {
-        // Check if the email is already registered
+        // Verificar si el email ya está registrado
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return new AuthenticationResponse("ERROR: Email already registered.");
         }
 
-        // Create and populate a new user entity
+        // Crear el usuario nuevo
         User newUser = new User();
         newUser.setEmail(request.getEmail());
-        newUser.setPassword(passwordEncoder.encode(request.getPassword())); // Encrypt password
+        newUser.setPassword(passwordEncoder.encode(request.getPassword())); // 🔐 Encriptar la contraseña
         newUser.setName(request.getName());
         newUser.setRole(request.getRole());
 
-        // Cargar usuario desde DB para asegurarse de obtener UserDetails correctamente
+        // Guardar usuario en la base de datos y forzar la persistencia
+        userRepository.saveAndFlush(newUser); // 🔥 Asegurar que el usuario se guarda antes de intentar autenticarlo
+
+        // Cargar usuario desde DB para obtener UserDetails correctamente
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
 
-        // Generar token con roles
+        // Generar token con los roles
         String jwtToken = jwtService.generateToken(userDetails);
 
         return new AuthenticationResponse(jwtToken);
     }
+
 }
