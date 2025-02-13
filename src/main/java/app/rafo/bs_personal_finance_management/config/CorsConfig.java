@@ -11,13 +11,14 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    /*
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
         // 🔥 Permitir el frontend en Render y en local
         config.setAllowedOrigins(List.of(
-                /* "http://localhost:5173", */
+                /* "http://localhost:5173",
                 "https://fs-personal-finance-management.onrender.com"
         ));
 
@@ -38,4 +39,5 @@ public class CorsConfig {
 
         return new CorsFilter(source);
     }
+    */
 }
