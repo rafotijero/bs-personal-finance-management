@@ -15,19 +15,22 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ Permitir cualquier origen en producción y localhost en desarrollo
-        config.setAllowedOriginPatterns(List.of("*"));
+        // 🔥 Permitir el frontend en Render y en local
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://fs-personal-finance-management.onrender.com"
+        ));
 
-        // ✅ Métodos permitidos
+        // 🔥 Métodos HTTP permitidos
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // ✅ Headers permitidos
+        // 🔥 Headers permitidos
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        // ✅ Exponer headers importantes
+        // 🔥 Exponer headers importantes
         config.setExposedHeaders(List.of("Authorization"));
 
-        // ✅ Permitir credenciales (solo si usas autenticación)
+        // 🔥 Permitir credenciales (necesario si usas autenticación)
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
