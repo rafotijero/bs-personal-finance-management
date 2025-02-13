@@ -15,22 +15,19 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 🔥 Permitir cualquier frontend en Render y Localhost
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:[*]",
-                "https://*.onrender.com" // Permite cualquier subdominio en Render
-        ));
+        // ✅ Permitir cualquier origen en producción y localhost en desarrollo
+        config.setAllowedOriginPatterns(List.of("*"));
 
-        // 🔥 Métodos HTTP permitidos
+        // ✅ Métodos permitidos
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // 🔥 Headers permitidos
+        // ✅ Headers permitidos
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        // 🔥 Exponer headers importantes
+        // ✅ Exponer headers importantes
         config.setExposedHeaders(List.of("Authorization"));
 
-        // 🔥 Permitir credenciales (necesario si usas autenticación)
+        // ✅ Permitir credenciales (solo si usas autenticación)
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
