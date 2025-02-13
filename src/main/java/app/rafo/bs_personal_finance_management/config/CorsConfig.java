@@ -14,7 +14,13 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Permitir el frontend
+
+        // 🔥 Permitir tanto local como producción
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://fs-personal-finance-management.onrender.com"
+        ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
