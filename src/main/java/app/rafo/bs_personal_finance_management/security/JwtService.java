@@ -1,7 +1,10 @@
 package app.rafo.bs_personal_finance_management.security;
 
+import app.rafo.bs_personal_finance_management.model.User;
+import app.rafo.bs_personal_finance_management.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +24,11 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
+    private final UserRepository userRepository;
+
+    public JwtService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Generates a JWT token for a given user.
@@ -34,6 +42,13 @@ public class JwtService {
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(auth -> "ROLE_" + auth.getAuthority()) // 🔥 Agregar "ROLE_" aquí
                 .collect(Collectors.toList()));
+
+        claims.put("username", userDetails.getUsername());
+
+        User authenticatedUser = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found"));
+
+        claims.put("id", authenticatedUser.getId());
 
         return Jwts.builder()
                 .setClaims(claims)
